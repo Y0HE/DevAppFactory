@@ -1,0 +1,16 @@
+# systemd user unit for factory-host. deploy/install-host.sh fills in @REPO@ and @NODE@ and installs it.
+[Unit]
+Description=DevAppFactory host service
+After=network.target
+
+[Service]
+WorkingDirectory=@REPO@/apps/host
+ExecStart=@NODE@ dist/server.js
+# Settings: see .env.example.
+EnvironmentFile=@REPO@/.env
+Environment=PATH=%h/.local/bin:/usr/local/bin:/usr/bin:/bin
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=default.target

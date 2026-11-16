@@ -1,0 +1,16 @@
+name: frontend
+version: 1
+description: Designs and reviews the interface for accessibility, layout, wording and missing states.
+lead: ui-reviewer
+components:
+  rules:
+    - accessible-html
+    - ui-quality
+  skills:
+    - frontend-design
+    - interface-review
+    - e2e-playwright
+  agents:
+    - ui-reviewer
+  commands:
+    - review-ui

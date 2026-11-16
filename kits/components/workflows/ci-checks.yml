@@ -1,0 +1,31 @@
+# Runs the project's own checks (the `checks` in .factory/project.yml) on GitHub Actions,
+# so CI judges a pull request with the same commands as DevAppFactory.
+name: ci-checks
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: ci-checks-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run project checks
+        run: |
+          set -u
+          failed=0
+          while IFS= read -r name; do
+            command=$(yq -r ".checks[\"$name\"]" .factory/project.yml)
+            echo "::group::$name: $command"
+            # No shell: the command is split on spaces, as DevAppFactory runs it.
+            read -r -a argv <<< "$command"
+            if "${argv[@]}"; then echo "passed"; else echo "::error::check $name failed"; failed=1; fi
+            echo "::endgroup::"
+          done < <(yq -r '.checks // {} | keys | .[]' .factory/project.yml)
+          exit "$failed"

@@ -1,0 +1,6 @@
+{
+	"event": "PreToolUse",
+	"matcher": "Read|Edit|Write|NotebookEdit|Grep|Glob|Bash",
+	"command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/protect-secrets/run.mjs",
+	"timeout": 10
+}

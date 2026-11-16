@@ -1,0 +1,17 @@
+name: base
+version: 4
+description: Minimal starting point. A static placeholder site in Docker Compose with a dev URL, plus the factory working rules.
+scaffold: base
+components:
+  rules: [factory-workflow, docker-first, commit-messages]
+  skills: []
+  agents: []
+  hooks: []
+  mcp: []
+  workflows: []
+checks:
+  compose: docker compose config -q
+runtime:
+  port: 80
+  health: /
+allowed_commands: ["docker compose", make, git]

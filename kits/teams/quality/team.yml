@@ -1,0 +1,24 @@
+name: quality
+version: 1
+description: Checks a feature against its acceptance criteria, hunts security problems and hidden failures, and blocks finishing on failing checks.
+lead: reality-checker
+components:
+  rules:
+    - evidence-first
+    - error-handling
+    - security-basics
+    - untrusted-content
+  skills:
+    - verification-before-completion
+  agents:
+    - reality-checker
+    - security-reviewer
+    - silent-failure-hunter
+    - test-engineer
+  commands:
+    - security-review
+    - ship-check
+    - tdd
+  hooks:
+    - checks-before-stop
+    - protect-secrets

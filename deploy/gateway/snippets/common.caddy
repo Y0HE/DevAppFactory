@@ -1,0 +1,30 @@
+(secure_headers) {
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+}
+
+(compress) {
+	encode zstd gzip
+}
+
+# Sites added with --auth import this. Users are managed with `gateway.sh passwd` and `unpasswd`.
+# Without auth/users.caddy the configuration does not load, so a site never runs open by accident.
+(basicauth) {
+	import /etc/caddy/auth/users.caddy
+}
+
+# Shown when the app behind a site is down.
+(down_page) {
+	handle_errors {
+		@down expression {err.status_code} in [502, 503, 504]
+		handle @down {
+			header Content-Type "text/html; charset=utf-8"
+			header Retry-After 60
+			respond `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Temporarily unavailable</title><body style="font-family:system-ui,sans-serif;display:grid;place-items:center;min-height:100vh;margin:0;text-align:center"><main><h1>Temporarily unavailable</h1><p>This app is not running right now. Please try again in a few minutes.</p></main></body></html>` {err.status_code}
+		}
+	}
+}

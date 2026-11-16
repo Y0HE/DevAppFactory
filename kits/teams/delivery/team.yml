@@ -1,0 +1,23 @@
+name: delivery
+version: 2
+description: Builds features test-first, gets failing checks green and reviews the result before it reaches you.
+lead: implementer
+components:
+  rules:
+    - commit-messages
+    - minimal-changes
+    - evidence-first
+  skills:
+    - test-driven-development
+    - verification-before-completion
+    - receiving-code-review
+  agents:
+    - implementer
+    - reviewer
+    - check-fixer
+  commands:
+    - review-changes
+    - validate
+    - commit
+  hooks:
+    - session-context

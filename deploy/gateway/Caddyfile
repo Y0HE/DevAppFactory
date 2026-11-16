@@ -1,0 +1,9 @@
+{
+	email {$ACME_EMAIL}
+}
+
+import /etc/caddy/snippets/*.caddy
+
+# One file per site in sites/, written by scripts/gateway.sh. A name without a site file
+# gets no certificate, so its TLS handshake is refused.
+import /etc/caddy/sites/*.caddy

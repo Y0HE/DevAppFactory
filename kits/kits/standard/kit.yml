@@ -1,0 +1,18 @@
+name: standard
+version: 1
+description: The base scaffold with the full working rules, a builder and a reviewer, and the skills for test-first work, debugging and verification. Add teams for more.
+scaffold: base
+components:
+  rules: [factory-workflow, docker-first, commit-messages, minimal-changes, evidence-first, root-cause-first, error-handling, security-basics, testing-first, untrusted-content]
+  skills: [test-driven-development, systematic-debugging, verification-before-completion]
+  agents: [implementer, reviewer]
+  commands: [validate, review-changes, commit]
+  hooks: []
+  mcp: []
+  workflows: []
+checks:
+  compose: docker compose config -q
+runtime:
+  port: 80
+  health: /
+allowed_commands: ["docker compose", make, git]

@@ -1,0 +1,28 @@
+name: devappfactory
+
+# Settings come from .env next to this file. deploy/install-host.sh creates it; .env.example explains each one.
+services:
+  factory-app:
+    build: .
+    image: factory-app
+    container_name: factory-app
+    restart: unless-stopped
+    # Same user as factory-host, so it can use the host service's socket.
+    user: "${FACTORY_UID:?set FACTORY_UID in .env (run deploy/install-host.sh)}:${FACTORY_GID:?set FACTORY_GID in .env (run deploy/install-host.sh)}"
+    environment:
+      - FACTORY_HOME=${FACTORY_HOME:?set FACTORY_HOME in .env (run deploy/install-host.sh)}
+      - FACTORY_SECRET_KEY=${FACTORY_SECRET_KEY:?set FACTORY_SECRET_KEY in .env (run deploy/install-host.sh)}  # encrypts stored variables
+      - MAX_CONCURRENT_RUNS=${MAX_CONCURRENT_RUNS:-2}
+    volumes:
+      # Only state and the host-service socket. Projects are reached through factory-host, never directly.
+      - ${FACTORY_HOME}/data:${FACTORY_HOME}/data
+      - ${FACTORY_HOME}/run:${FACTORY_HOME}/run
+    expose:
+      - "3000"
+    networks:
+      - gateway
+
+networks:
+  gateway:
+    name: ${FACTORY_APP_NETWORK:-devappfactory-network}
+    external: true  # the gateway joins it to reach factory-app

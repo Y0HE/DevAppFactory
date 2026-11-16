@@ -1,0 +1,23 @@
+# DevAppFactory starts this stack for dev (https://{{name}}-dev.<domain>) and, from a pinned clone,
+# for preview and production. Add docker-compose.deploy.yml when deployments need a different setup.
+# Placeholder app: a static site from ./public. Replace it with the project's own build.
+services:
+  app:
+    image: nginx:alpine
+    restart: unless-stopped
+    env_file:
+      - path: .env  # written by DevAppFactory in preview and production; absent in dev
+        required: false
+    volumes:
+      - ./public:/usr/share/nginx/html:ro
+    expose:
+      - "80"
+    networks:
+      default:
+      factory-edge:
+        aliases:
+          - ${APP_HOST:-{{name}}-dev}  # the name the gateway uses to reach this app
+
+networks:
+  factory-edge:
+    external: true  # shared with the gateway; only the web-facing service joins it

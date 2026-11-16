@@ -1,0 +1,45 @@
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  host:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [18, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+          cache-dependency-path: apps/host/package-lock.json
+      - run: npm ci
+        working-directory: apps/host
+      - run: npm run build
+        working-directory: apps/host
+      - run: npm test
+        working-directory: apps/host
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Builds the web UI and the API, which type-checks both.
+      - run: docker build -t factory-app .
+  no-server-specifics:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: No home paths in tracked files
+        run: |
+          if git grep -nI -E '/home/[a-z][a-z0-9_-]*/' -- . ':!.env.example' ':!.github/workflows/ci.yml'; then
+            echo "::error::Found a hard-coded home path. Settings belong in .env (see .env.example)."
+            exit 1
+          fi

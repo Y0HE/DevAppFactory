@@ -1,0 +1,19 @@
+name: maintenance
+version: 1
+description: Finds root causes, fixes failing checks, simplifies code and keeps the docs true.
+lead: debugger
+components:
+  rules:
+    - root-cause-first
+    - documentation
+  skills:
+    - systematic-debugging
+  agents:
+    - debugger
+    - check-fixer
+    - code-simplifier
+    - doc-updater
+  commands:
+    - debug
+    - simplify
+    - update-docs

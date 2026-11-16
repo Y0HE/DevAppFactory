@@ -1,0 +1,5 @@
+{
+	"event": "SessionStart",
+	"command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/session-context/run.mjs",
+	"timeout": 10
+}

@@ -1,0 +1,5 @@
+{
+	"event": "Stop",
+	"command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/checks-before-stop/run.mjs",
+	"timeout": 900
+}

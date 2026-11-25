@@ -10,6 +10,11 @@ import { startRun, type Run, type RunEvent, type RunResult } from "./runner.js";
 
 /** Chatter that is not useful in a transcript. */
 const SKIP_SYSTEM = new Set(["commands_changed", "thinking_tokens"]);
+/**
+ * Expected on every run: Claude Code skips the allow rules in an untrusted folder's
+ * .claude/settings.json, and the same rules are passed with --allowedTools (see allowlist).
+ */
+export const EXPECTED_STDERR = /^Ignoring \d+ permissions\.allow entries from \.claude\/settings(\.local)?\.json: this workspace has not been trusted/;
 
 /** Denied whatever the project allows. */
 const DENY = ["Bash(git push*)", "Bash(sudo *)"];
@@ -92,6 +97,7 @@ export function start(req: StartRequest) {
 	run.on("event", (e: RunEvent) => {
 		const p = e.payload as any;
 		if (e.type === "system" && SKIP_SYSTEM.has(p?.subtype)) return;
+		if (e.type === "stderr" && typeof p === "string" && EXPECTED_STDERR.test(p)) return;
 		if (e.type === "rate_limit_event") {
 			const info = p?.rate_limit_info ?? {};
 			entry.rateLimit = { status: info.status, resetsAt: info.resetsAt, type: info.rateLimitType };

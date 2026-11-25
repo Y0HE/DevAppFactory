@@ -3,6 +3,13 @@ export interface Check {
 	detail?: string;
 	version?: string;
 	user?: string;
+	token?: ClaudeToken | null;
+}
+export interface ClaudeToken {
+	kind: "oauth" | "apikey";
+	savedAt: string;
+	expiresAt?: string;
+	hint: string;
 }
 export type Status = Partial<Record<"host" | "claude" | "github" | "docker" | "gateway", Check>> & { host?: Check & { sshTarget?: string } };
 
@@ -280,6 +287,11 @@ export const ACTIVE = new Set(["queued", "running"]);
 
 export const api = {
 	status: () => fetch("/api/status").then((r) => json<Status>(r)),
+	claudeLogin: () => post<{ id: string; url: string }>("/api/claude-auth/login", {}),
+	claudeLoginFinish: (id: string, code: string) => post<{ ok: boolean; token: ClaudeToken }>("/api/claude-auth/login/finish", { id, code }),
+	claudeLoginCancel: () => post<{ ok: boolean }>("/api/claude-auth/login/cancel", {}),
+	claudeSaveToken: (token: string) => post<{ ok: boolean; token: ClaudeToken }>("/api/claude-auth/token", { token }),
+	claudeClearToken: () => post<{ ok: boolean }>("/api/claude-auth/clear", {}),
 	kits: () => fetch("/api/kits").then((r) => json<Kit[]>(r)),
 	projects: () => fetch("/api/projects").then((r) => json<Project[]>(r)),
 	project: (name: string) => fetch(`/api/projects/${name}`).then((r) => json<ProjectDetail>(r)),

@@ -19,10 +19,11 @@ import { applyUpgrade, kitStatus, promote } from "./kitsync.js";
 import { deploy, deployStatus, deployStop, latestMain } from "./deploy.js";
 import * as teams from "./teams.js";
 import * as runs from "./runs.js";
+import * as claudeAuth from "./claudeauth.js";
 
 async function status() {
-	const [claudeAuth, claudeVersion, gh, docker, gateway] = await Promise.all([
-		run("claude", ["auth", "status"], { timeoutMs: 15_000 }),
+	const [authStatus, claudeVersion, gh, docker, gateway] = await Promise.all([
+		run("claude", ["auth", "status"], { timeoutMs: 15_000, env: { ...process.env, ...claudeAuth.claudeAuthEnv() } }),
 		run("claude", ["--version"], { timeoutMs: 15_000 }),
 		run("gh", ["api", "user", "-q", ".login"], { timeoutMs: 15_000 }),
 		run("docker", ["info", "--format", "{{.ServerVersion}}"], { timeoutMs: 15_000 }),
@@ -30,11 +31,17 @@ async function status() {
 	]);
 	let loggedIn = false;
 	try {
-		loggedIn = JSON.parse(claudeAuth.stdout).loggedIn === true;
+		loggedIn = JSON.parse(authStatus.stdout).loggedIn === true;
 	} catch {}
+	const token = claudeAuth.tokenInfo();
 	return {
 		host: { ok: true, home: config.home, sshTarget: config.sshTarget || `${userInfo().username}@factory.${domain()}` },
-		claude: { ok: loggedIn, version: claudeVersion.stdout || undefined, detail: loggedIn ? "logged in" : "not logged in: run `claude auth login` on the server" },
+		claude: {
+			ok: loggedIn,
+			version: claudeVersion.stdout || undefined,
+			detail: loggedIn ? (token ? "long-lived token" : "logged in") : "not signed in: use Connect Claude",
+			token,
+		},
 		github: { ok: gh.ok, user: gh.ok ? gh.stdout : undefined, detail: gh.ok ? undefined : gh.stderr },
 		docker: { ok: docker.ok, version: docker.ok ? docker.stdout : undefined, detail: docker.ok ? undefined : docker.stderr },
 		gateway: { ok: gateway.stdout === "true", container: config.gatewayContainer },
@@ -91,6 +98,12 @@ const routes: [method: string, pattern: RegExp, handler: Handler][] = [
 	["POST", /^\/teams\/([a-z0-9-]+)$/, async (b, m) => teams.saveTeam(m[1], b)],
 	["GET", /^\/projects\/([a-z0-9-]+)\/teams$/, async (_b, m) => teams.projectTeams(m[1])],
 	["POST", /^\/projects\/([a-z0-9-]+)\/teams$/, async (b, m) => teams.setTeam(m[1], String(b.id ?? ""), b.assign !== false)],
+	["GET", /^\/claude-auth$/, async () => ({ token: claudeAuth.tokenInfo() })],
+	["POST", /^\/claude-auth\/login$/, async () => claudeAuth.startLogin()],
+	["POST", /^\/claude-auth\/login\/finish$/, async (b) => claudeAuth.finishLogin(b.id, b.code)],
+	["POST", /^\/claude-auth\/login\/cancel$/, async () => claudeAuth.cancelLogin()],
+	["POST", /^\/claude-auth\/token$/, async (b) => claudeAuth.saveToken(b.token)],
+	["POST", /^\/claude-auth\/clear$/, async () => claudeAuth.clearToken()],
 	["POST", /^\/runs$/, async (body) => runs.start(body)],
 	["GET", /^\/runs\/([0-9a-f-]{36})$/, async (_body, m) => runs.info(m[1])],
 	["POST", /^\/runs\/([0-9a-f-]{36})\/message$/, async (body, m) => runs.message(m[1], body.text)],

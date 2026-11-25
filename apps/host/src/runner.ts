@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 import { EventEmitter } from "node:events";
 import { createInterface } from "node:readline";
 import { fileURLToPath } from "node:url";
+import { claudeAuthEnv } from "./claudeauth.js";
 
 export interface PermissionPolicy {
 	/** Claude Code permission rules that are allowed without asking, e.g. "Bash(docker compose *)". */
@@ -76,9 +77,11 @@ export function buildArgs(opts: RunOptions, sessionId: string): string[] {
 	return args;
 }
 
-export function buildEnv(opts: RunOptions, runId: string, source: NodeJS.ProcessEnv = process.env): NodeJS.ProcessEnv {
+export function buildEnv(opts: RunOptions, runId: string, source: NodeJS.ProcessEnv = process.env, auth: Record<string, string> = claudeAuthEnv()): NodeJS.ProcessEnv {
 	const env: NodeJS.ProcessEnv = {};
 	for (const key of ENV_PASSTHROUGH) if (source[key] !== undefined) env[key] = source[key];
+	// The long-lived token saved from the UI, when there is one; otherwise ~/.claude credentials.
+	Object.assign(env, auth);
 	env.FACTORY_RUN_ID = runId;
 	env.FACTORY_WORKDIR = opts.cwd;
 	return env;
@@ -90,6 +93,8 @@ export function classifyResult(result: any, interrupted: boolean): RunStatus {
 	if (!result) return "failed";
 	const text = typeof result.result === "string" ? result.result : "";
 	if (result.terminal_reason === "api_error" || result.is_error) {
+		// Two processes refreshing the shared login at once: transient, the credentials are fine.
+		if (/another Claude Code process is refreshing/i.test(text)) return "failed";
 		if (/authenticat|OAuth|log ?in|401/i.test(text)) return "auth_required";
 		// TODO(verify): exact shape of a subscription limit result has not been observed yet.
 		if (/usage limit|rate limit|limit reached|429/i.test(text)) return "paused_limit";

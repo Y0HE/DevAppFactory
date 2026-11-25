@@ -50,6 +50,16 @@ app.get("/api/status", async () => {
 
 app.get("/api/kits", () => host.get("/kits"));
 
+// Claude credentials for agent runs: sign in through `claude setup-token` on the host, or paste a token.
+app.get("/api/claude-auth", (_req, reply) => wrap(reply, () => host.get("/claude-auth")));
+app.post("/api/claude-auth/login", (_req, reply) => wrap(reply, () => host.post("/claude-auth/login", {})));
+app.post<{ Body: { id?: string; code?: string } }>("/api/claude-auth/login/finish", (req, reply) =>
+	wrap(reply, () => host.post("/claude-auth/login/finish", { id: req.body?.id, code: req.body?.code })),
+);
+app.post("/api/claude-auth/login/cancel", (_req, reply) => wrap(reply, () => host.post("/claude-auth/login/cancel", {})));
+app.post<{ Body: { token?: string } }>("/api/claude-auth/token", (req, reply) => wrap(reply, () => host.post("/claude-auth/token", { token: req.body?.token })));
+app.post("/api/claude-auth/clear", (_req, reply) => wrap(reply, () => host.post("/claude-auth/clear", {})));
+
 app.get("/api/projects", async () => {
 	const rows = db.listProjects();
 	return Promise.all(

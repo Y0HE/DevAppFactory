@@ -649,3 +649,13 @@ fieldset.pick legend {
 	clip-path: inset(50%);
 	white-space: nowrap;
 }
+.dialog-step {
+	display: grid;
+	gap: 0.7rem;
+	margin-top: 0.6rem;
+}
+.check button.link {
+	display: block;
+	padding: 0.1rem 0;
+	font-size: 0.85em;
+}

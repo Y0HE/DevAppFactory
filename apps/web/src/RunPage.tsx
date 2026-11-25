@@ -146,7 +146,11 @@ export function RunPage({ id }: { id: string }) {
 						</button>
 					)}
 				</div>
-				{run.status === "auth_required" && <p className="error">Claude Code is not logged in on the server. Run `claude auth login` there, then resume.</p>}
+				{run.status === "auth_required" && (
+					<p className="error">
+						Claude Code is not signed in on the server. <a href="#/connect-claude">Connect Claude</a> from the dashboard, then resume.
+					</p>
+				)}
 				{run.status === "paused_limit" && (
 					<p className="error">Usage limit reached{run.resets_at ? `; it resets ${new Date(run.resets_at * 1000).toLocaleString()}` : ""}. Resume the run after that.</p>
 				)}

@@ -7,6 +7,7 @@ import { KitsPage } from "./KitsPage";
 import { TeamsPage } from "./TeamsPage";
 import { CleanupPage } from "./CleanupPage";
 import { RunsTable } from "./RunsTable";
+import { ClaudeAuthDialog } from "./ClaudeAuthDialog";
 
 const CHECKS: { key: keyof Status; label: string }[] = [
 	{ key: "host", label: "Host service" },
@@ -58,6 +59,7 @@ function Dashboard() {
 	const [projects, setProjects] = useState<Project[] | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [creating, setCreating] = useState(false);
+	const [connecting, setConnecting] = useState(location.hash === "#/connect-claude");
 
 	const refresh = useCallback(() => {
 		api.status().then(setStatus).catch((e) => setError(e.message));
@@ -86,6 +88,11 @@ function Dashboard() {
 								<div>
 									<strong>{label}</strong>
 									<small>{!status ? "Checking…" : check?.ok ? (check.user ?? check.version ?? "OK") : (check?.detail ?? "Unavailable")}</small>
+									{key === "claude" && status?.host?.ok && (
+										<button className="link" onClick={() => setConnecting(true)}>
+											{check?.token ? "Manage token" : "Connect Claude"}
+										</button>
+									)}
 								</div>
 							</div>
 						);
@@ -93,6 +100,16 @@ function Dashboard() {
 				</section>
 
 				{error && <p className="error">{error}</p>}
+				{connecting && (
+					<ClaudeAuthDialog
+						token={status?.claude?.token ?? null}
+						onClose={() => {
+							setConnecting(false);
+							if (location.hash === "#/connect-claude") location.hash = "#/";
+							refresh();
+						}}
+					/>
+				)}
 
 				<section>
 					<div className="section-head">

@@ -76,7 +76,7 @@ export function start(req: StartRequest) {
 	const run = startRun({
 		cwd,
 		prompt: req.prompt,
-		model: req.model,
+		model: req.model || config.defaultModel || undefined,
 		agent: req.agent,
 		mcpConfig: servers.length ? join(cwd, ".mcp.json") : undefined,
 		resumeSessionId: req.resumeSessionId,

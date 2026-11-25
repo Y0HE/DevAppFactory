@@ -26,6 +26,11 @@ export const config = {
 	/** Network shared by the gateway and the web container of every factory app. */
 	edgeNetwork: process.env.FACTORY_EDGE_NETWORK || "factory-edge",
 	gatewayContainer: process.env.GATEWAY_CONTAINER || "gateway-caddy",
+	/**
+	 * Model for agent runs that do not choose one. Without it Claude Code uses the account's default,
+	 * which can be a model the subscription only offers with usage credits. Set it empty to use that default.
+	 */
+	defaultModel: process.env.FACTORY_DEFAULT_MODEL ?? "sonnet",
 };
 
 export const PROJECT_NAME = /^[a-z0-9]([a-z0-9-]{0,38}[a-z0-9])?$/;

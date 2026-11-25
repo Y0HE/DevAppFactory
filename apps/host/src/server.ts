@@ -35,7 +35,7 @@ async function status() {
 	} catch {}
 	const token = claudeAuth.tokenInfo();
 	return {
-		host: { ok: true, home: config.home, sshTarget: config.sshTarget || `${userInfo().username}@factory.${domain()}` },
+		host: { ok: true, home: config.home, defaultModel: config.defaultModel || undefined, sshTarget: config.sshTarget || `${userInfo().username}@factory.${domain()}` },
 		claude: {
 			ok: loggedIn,
 			version: claudeVersion.stdout || undefined,
